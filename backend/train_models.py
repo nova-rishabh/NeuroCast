@@ -27,12 +27,12 @@ try:
     X1_train, X1_test, y1_train, y1_test = train_test_split( 
         X1, y1, test_size=0.2, random_state=42, stratify=y1 
     ) 
-    vec1 = TfidfVectorizer(max_features=15000, ngram_range=(1,2), 
+    vec1 = TfidfVectorizer(max_features=25000, ngram_range=(1,2),
                            stop_words='english', sublinear_tf=True) 
     X1_train_tfidf = vec1.fit_transform(X1_train) 
     X1_test_tfidf = vec1.transform(X1_test) 
  
-    lr1 = LogisticRegression(max_iter=1000, C=1.0, class_weight='balanced', random_state=42) 
+    lr1 = LogisticRegression(max_iter=1000, C=3.0, class_weight='balanced', random_state=42)
     lr1.fit(X1_train_tfidf, y1_train) 
     y1_pred = lr1.predict(X1_test_tfidf) 
  
@@ -84,12 +84,12 @@ try:
     X2_train, X2_test, y2_train, y2_test = train_test_split( 
         X2, y2, test_size=0.2, random_state=42, stratify=y2 
     ) 
-    vec2 = TfidfVectorizer(max_features=20000, ngram_range=(1,2), 
+    vec2 = TfidfVectorizer(max_features=30000, ngram_range=(1,3),
                            stop_words='english', sublinear_tf=True) 
     X2_train_tfidf = vec2.fit_transform(X2_train) 
     X2_test_tfidf = vec2.transform(X2_test) 
  
-    lr2 = LogisticRegression(max_iter=1000, C=5.0, random_state=42) 
+    lr2 = LogisticRegression(max_iter=1000, C=10.0, random_state=42)
     lr2.fit(X2_train_tfidf, y2_train) 
     y2_pred = lr2.predict(X2_test_tfidf) 
  
@@ -137,11 +137,12 @@ try:
     X3_train, X3_test, y3_train, y3_test = train_test_split( 
         X3, y3, test_size=0.2, random_state=42, stratify=y3 
     ) 
-    vec3 = TfidfVectorizer(max_features=15000, ngram_range=(1,2), sublinear_tf=True) 
+    # Using char_wb for multilingual toxicity handles cross-language subwords efficiently
+    vec3 = TfidfVectorizer(max_features=30000, analyzer='char_wb', ngram_range=(2,5), sublinear_tf=True)
     X3_train_tfidf = vec3.fit_transform(X3_train) 
     X3_test_tfidf = vec3.transform(X3_test) 
  
-    lr3 = LogisticRegression(max_iter=1000, C=2.0, class_weight='balanced', random_state=42) 
+    lr3 = LogisticRegression(max_iter=1000, C=5.0, class_weight='balanced', random_state=42)
     lr3.fit(X3_train_tfidf, y3_train) 
     y3_pred = lr3.predict(X3_test_tfidf) 
     y3_proba = lr3.predict_proba(X3_test_tfidf)[:, 1] 
