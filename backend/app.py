@@ -89,7 +89,11 @@ def c1_batch():
     if fname.endswith('.xlsx'):
         df = pd.read_excel(f)
     else:
-        df = pd.read_csv(f)
+        try:
+            df = pd.read_csv(f, encoding='utf-8')
+        except UnicodeDecodeError:
+            f.seek(0)
+            df = pd.read_csv(f, encoding='latin1')
 
     df.columns = [str(c).strip().lower() for c in df.columns]
     text_col = next((c for c in df.columns if 'text' in c or 'tweet' in c), None)
@@ -145,7 +149,11 @@ def c2_batch():
     if fname.endswith('.xlsx'):
         df = pd.read_excel(f)
     else:
-        df = pd.read_csv(f)
+        try:
+            df = pd.read_csv(f, encoding='utf-8')
+        except UnicodeDecodeError:
+            f.seek(0)
+            df = pd.read_csv(f, encoding='latin1')
 
     df.columns = [str(c).strip().lower() for c in df.columns]
 
@@ -213,7 +221,11 @@ def c3_batch():
     if fname.endswith('.xlsx'): 
         df = pd.read_excel(f) 
     else: 
-        df = pd.read_csv(f) 
+        try:
+            df = pd.read_csv(f, encoding='utf-8')
+        except UnicodeDecodeError:
+            f.seek(0)
+            df = pd.read_csv(f, encoding='latin1')
     df.columns = [str(c).strip().lower() for c in df.columns]
     text_col = next((c for c in df.columns if 'text' in c or 'comment' in c), None) 
     if text_col is None: 
