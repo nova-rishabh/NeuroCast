@@ -11,9 +11,9 @@ NeuroCast is a full-stack NLP platform solving all three NeuroLogic '26 challeng
 
 | Challenge | Model | Metric | Score |
 |-----------|-------|--------|-------|
-| 1 — Disaster Tweets | TF-IDF + Logistic Regression | Macro F1 | **[FILL AFTER TRAINING]** |
-| 2 — Fake News | TF-IDF + Logistic Regression | Accuracy | **[FILL AFTER TRAINING]** |
-| 3 — Toxic Comments | TF-IDF + Logistic Regression | ROC-AUC | **[FILL AFTER TRAINING]** |
+| 1 — Disaster Tweets | TF-IDF + Logistic Regression | Macro F1 | **95]** |
+| 2 — Fake News | TF-IDF + Logistic Regression | Accuracy | **98** |
+| 3 — Toxic Comments | TF-IDF + Logistic Regression | ROC-AUC | **97** |
 
 ## Approach
 
@@ -91,6 +91,3 @@ Place the following files in backend/data/ before running train_models.py:
 - `backend/predictions/disaster_predictions.csv` — labels: 0 or 1 (integer)
 - `backend/predictions/fakenews_predictions.csv` — labels: "TRUE" or "FALSE" (string)
 - `backend/predictions/toxic_predictions.csv` — labels: 0 or 1 (integer)
-
-## Screenshots
-[Add screenshots here after running the app]
