@@ -19,9 +19,9 @@ import About from './pages/About';
 export default function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-[#0A0E1A] text-slate-100">
+      <div className="min-h-screen bg-[#03040A] text-slate-100">
         <Navbar />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/challenge/1" element={<Challenge1 />} />
@@ -31,11 +31,22 @@ export default function App() {
             <Route path="/about" element={<About />} />
           </Routes>
         </main>
-        <footer className="text-center py-6 text-slate-600 text-xs border-t border-[#2D3748] mt-16">
-          Built for NeuroLogic '26 · Global NLP Datathon · GGITS AIML Dept · April 25, 2026
+        <footer className="border-t border-[rgba(99,102,241,0.1)] py-8 px-6 mt-20">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <img src="/NeuroCast.png" alt="NeuroCast" className="h-6 w-6 object-contain opacity-60"/>
+              <span className="font-mono text-xs text-slate-600">
+                NeuroCast · Built for NeuroLogic '26 · GGITS AIML · April 25, 2026
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"/>
+              <span className="font-mono text-xs text-slate-600">All systems operational</span>
+            </div>
+          </div>
         </footer>
         <Toaster position="bottom-right" toastOptions={{
-          style: { background: '#1E2433', color: '#F1F5F9', border: '1px solid #2D3748' }
+          style: { background: '#111327', color: '#F8FAFC', border: '1px solid rgba(99,102,241,0.15)' }
         }}/>
       </div>
     </Router>

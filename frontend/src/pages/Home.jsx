@@ -1,122 +1,215 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, Zap } from 'lucide-react';
+import { ArrowRight, Zap, Brain, Shield, Globe } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
-function CountUp({ target, suffix = '' }) {
+const fadeUp = (delay = 0) => ({
+  initial: { opacity: 0, y: 24 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] },
+});
+
+function AnimatedCounter({ target, suffix = '' }) {
   const ref = useRef();
   useEffect(() => {
-    let start = 0;
-    const step = Math.ceil(target / 60);
+    let current = 0;
+    const increment = Math.ceil(target / 80);
     const timer = setInterval(() => {
-      start = Math.min(start + step, target);
-      if (ref.current) ref.current.textContent = start.toLocaleString() + suffix;
-      if (start >= target) clearInterval(timer);
-    }, 16);
+      current = Math.min(current + increment, target);
+      if (ref.current) ref.current.textContent = current.toLocaleString() + suffix;
+      if (current >= target) clearInterval(timer);
+    }, 20);
     return () => clearInterval(timer);
   }, [target, suffix]);
-  return <span ref={ref}>0</span>;
+  return <span ref={ref} />;
 }
 
 const challenges = [
   {
-    num: 1, icon: '🚨', title: 'Disaster Tweet Classifier',
-    desc: 'Classifies crisis tweets as Informative or Not Informative to support emergency response systems.',
+    num: 1, icon: '🚨', label: 'CHALLENGE 01',
+    title: 'Disaster Tweet Classifier',
+    desc: 'Classifies crisis tweets as Informative or Not Informative to power real-time emergency response filtering.',
     metric: 'Macro F1-Score', level: 'Beginner–Intermediate',
-    border: 'border-t-amber-500', badge: 'bg-amber-500/20 text-amber-400', to: '/challenge/1',
+    accentColor: '#F59E0B', accentBg: 'rgba(245,158,11,0.08)',
+    accentBorder: 'rgba(245,158,11,0.25)', to: '/challenge/1',
+    icon2: Brain, stat: '25,933', statLabel: 'crisis tweets',
   },
   {
-    num: 2, icon: '📰', title: 'Fake News Detector',
-    desc: 'Identifies whether a news article is Real (TRUE) or Fake (FALSE) using title and body text.',
+    num: 2, icon: '📰', label: 'CHALLENGE 02',
+    title: 'Fake News Detector',
+    desc: 'Identifies whether a news article is Real (TRUE) or Fake (FALSE) by analyzing headline and full body text.',
     metric: 'Overall Accuracy', level: 'Intermediate',
-    border: 'border-t-red-500', badge: 'bg-red-500/20 text-red-400', to: '/challenge/2',
+    accentColor: '#EF4444', accentBg: 'rgba(239,68,68,0.08)',
+    accentBorder: 'rgba(239,68,68,0.25)', to: '/challenge/2',
+    icon2: Shield, stat: '23,893', statLabel: 'news articles',
   },
   {
-    num: 3, icon: '🌐', title: 'Multilingual Toxic Classifier',
-    desc: 'Detects toxic comments across English and Hindi, returning binary labels 0 or 1.',
+    num: 3, icon: '🌐', label: 'CHALLENGE 03',
+    title: 'Multilingual Toxic Classifier',
+    desc: 'Detects toxic comments in English and Hindi with binary labels, supporting scalable content moderation.',
     metric: 'Mean ROC-AUC', level: 'Advanced',
-    border: 'border-t-cyan-500', badge: 'bg-cyan-500/20 text-cyan-400', to: '/challenge/3',
+    accentColor: '#2DD4BF', accentBg: 'rgba(45,212,191,0.08)',
+    accentBorder: 'rgba(45,212,191,0.25)', to: '/challenge/3',
+    icon2: Globe, stat: '9,000', statLabel: 'multilingual comments',
   },
 ];
 
 export default function Home() {
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+    <div className="min-h-screen overflow-hidden" style={{ background: '#03040A' }}>
+      {/* Background grid */}
+      <div className="fixed inset-0 bg-grid-pattern bg-grid opacity-100 pointer-events-none"/>
+
+      {/* Ambient glow orbs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="glow-orb w-[600px] h-[600px] bg-indigo-600/20 -top-64 -left-32"/>
+        <div className="glow-orb w-[400px] h-[400px] bg-cyan-500/10 top-1/3 -right-32"/>
+        <div className="glow-orb w-[500px] h-[500px] bg-purple-600/10 bottom-0 left-1/3"/>
+      </div>
+
       {/* Hero */}
-      <div className="text-center py-20 px-4"
-        style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.15), transparent 70%)' }}>
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <span className="inline-flex items-center gap-1.5 text-xs bg-indigo-500/20 text-indigo-400
-            border border-indigo-500/30 px-3 py-1 rounded-full font-medium mb-6">
-            <Zap size={12}/> NeuroLogic '26 · Global NLP Datathon · April 25, 2026
-          </span>
+      <section className="relative min-h-screen flex flex-col items-center justify-center
+        text-center px-4 pt-20 pb-16 z-10">
+
+        {/* Hackathon badge */}
+        <motion.div {...fadeUp(0)}>
+          <div className="inline-flex items-center gap-2 mb-8 px-4 py-2 rounded-full
+            bg-[rgba(99,102,241,0.1)] border border-[rgba(99,102,241,0.3)]">
+            <span className="w-2 h-2 rounded-full bg-brand-violet animate-pulse"/>
+            <span className="text-xs font-mono text-brand-purple font-medium tracking-wider">
+              NEUROLOGIC '26 · GLOBAL NLP DATATHON · APRIL 25, 2026
+            </span>
+          </div>
         </motion.div>
-        <motion.h1 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-          className="text-6xl sm:text-7xl font-black mb-4
-            bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
-          NeuroCast
-        </motion.h1>
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
-          className="text-xl text-slate-400 mb-2 font-light">
-          Global NLP Intelligence Platform
-        </motion.p>
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
-          className="text-slate-500 text-sm mb-12">
-          3 Challenges · Real Inference · Submission-Ready Predictions
+
+        {/* Main headline */}
+        <motion.div {...fadeUp(0.1)} className="mb-6">
+          <h1 className="font-display text-5xl sm:text-7xl lg:text-8xl font-bold
+            tracking-tight leading-[1.05] text-white">
+            Three NLP Problems.
+            <br/>
+            <span className="gradient-text">One Platform.</span>
+          </h1>
+        </motion.div>
+
+        {/* Sub headline */}
+        <motion.p {...fadeUp(0.2)} className="text-lg sm:text-xl text-slate-400 max-w-2xl mb-10 leading-relaxed">
+          Real-time inference, batch predictions, explainable AI, and submission-ready
+          outputs for all three NeuroLogic '26 challenges — built in one sprint.
         </motion.p>
 
-        {/* Challenge Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 text-left">
+        {/* CTAs */}
+        <motion.div {...fadeUp(0.3)} className="flex flex-wrap gap-4 justify-center mb-16">
+          <Link to="/challenge/1">
+            <button className="btn-primary flex items-center gap-2 px-8 py-3.5 text-sm">
+              Start with Challenge 1 <ArrowRight size={16}/>
+            </button>
+          </Link>
+          <Link to="/dashboard">
+            <button className="flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-semibold
+              text-slate-300 border border-[rgba(99,102,241,0.3)] hover:border-[rgba(99,102,241,0.5)]
+              hover:bg-[rgba(99,102,241,0.05)] transition-all duration-200">
+              <Zap size={16} className="text-brand-violet"/> View Dashboard
+            </button>
+          </Link>
+        </motion.div>
+
+        {/* Stats row */}
+        <motion.div {...fadeUp(0.4)}
+          className="flex flex-wrap justify-center gap-8 sm:gap-16">
+          {[
+            { value: 25933, label: 'Crisis Tweets', color: '#F59E0B' },
+            { value: 23893, label: 'News Articles', color: '#EF4444' },
+            { value: 9000, label: 'Comments', color: '#2DD4BF' },
+            { value: 3, label: 'ML Models', color: '#818CF8' },
+          ].map((s, i) => (
+            <div key={i} className="text-center">
+              <p className="font-display text-3xl sm:text-4xl font-bold"
+                style={{ color: s.color }}>
+                <AnimatedCounter target={s.value}/>
+              </p>
+              <p className="text-xs text-slate-500 mt-1 font-mono uppercase tracking-wider">{s.label}</p>
+            </div>
+          ))}
+        </motion.div>
+      </section>
+
+      {/* Challenge Cards */}
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pb-32">
+        <motion.div
+          initial={{ opacity: 0 }} whileInView={{ opacity: 1 }}
+          viewport={{ once: true }} transition={{ duration: 0.5 }}
+          className="text-center mb-14">
+          <p className="text-xs font-mono text-slate-500 tracking-[4px] uppercase mb-4">
+            THREE CHALLENGES
+          </p>
+          <h2 className="font-display text-4xl sm:text-5xl font-bold text-white">
+            Pick Your Challenge
+          </h2>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {challenges.map((c, i) => (
             <motion.div key={c.num}
-              initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 + i * 0.1 }}
-              className={`card p-6 border-t-4 ${c.border} flex flex-col justify-between`}>
-              <div>
-                <div className="text-3xl mb-3">{c.icon}</div>
-                <p className="text-xs text-slate-500 font-mono mb-1">CHALLENGE {c.num}</p>
-                <h3 className="text-lg font-bold text-slate-100 mb-2">{c.title}</h3>
-                <p className="text-sm text-slate-400 mb-4">{c.desc}</p>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <span className={`text-xs px-2 py-0.5 rounded-full border ${c.badge}`}>
-                    {c.metric}
-                  </span>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-400 border border-slate-600">
-                    {c.level}
-                  </span>
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: i * 0.12, ease: [0.22,1,0.36,1] }}>
+              <Link to={c.to} className="block h-full">
+                <div className="glass-card h-full p-6 cursor-pointer group"
+                  style={{ '--challenge-color': c.accentColor }}>
+
+                  {/* Top bar */}
+                  <div className="flex items-center justify-between mb-6">
+                    <span className="font-mono text-xs font-semibold tracking-widest"
+                      style={{ color: c.accentColor }}>
+                      {c.label}
+                    </span>
+                    <span className="text-2xl">{c.icon}</span>
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="font-display text-xl font-bold text-white mb-3 leading-tight
+                    group-hover:text-brand-purple transition-colors">
+                    {c.title}
+                  </h3>
+                  <p className="text-sm text-slate-400 leading-relaxed mb-6">{c.desc}</p>
+
+                  {/* Stat */}
+                  <div className="flex items-center gap-2 mb-6 p-3 rounded-xl"
+                    style={{ background: c.accentBg, border: `1px solid ${c.accentBorder}` }}>
+                    <span className="font-display font-bold text-lg" style={{ color: c.accentColor }}>
+                      {c.stat}
+                    </span>
+                    <span className="text-xs text-slate-400">{c.statLabel} trained</span>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-2">
+                      <span className="status-badge text-xs"
+                        style={{ background: c.accentBg, color: c.accentColor,
+                          border: `1px solid ${c.accentBorder}` }}>
+                        {c.metric}
+                      </span>
+                    </div>
+                    <ArrowRight size={18} className="text-slate-600 group-hover:text-brand-purple
+                      group-hover:translate-x-1 transition-all"/>
+                  </div>
                 </div>
-              </div>
-              <Link to={c.to}
-                className="flex items-center gap-2 text-sm font-semibold text-indigo-400
-                  hover:text-indigo-300 transition-colors group">
-                Launch Challenge <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform"/>
               </Link>
             </motion.div>
           ))}
         </div>
 
-        {/* Stats bar */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}
-          className="mt-12 flex flex-wrap justify-center gap-8 text-center">
-          {[
-            { value: 25933, label: 'Crisis Tweets' },
-            { value: 23893, label: 'News Articles' },
-            { value: 9000, label: 'Comments' },
-          ].map(s => (
-            <div key={s.label}>
-              <p className="text-3xl font-black text-indigo-400">
-                <CountUp target={s.value}/>
-              </p>
-              <p className="text-xs text-slate-500 mt-1">{s.label}</p>
-            </div>
-          ))}
-        </motion.div>
-
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }}
-          className="mt-10 text-xs text-slate-600 font-mono">
-          Powered by TF-IDF · Logistic Regression · scikit-learn · Hugging Face Datasets
+        {/* Bottom tagline */}
+        <motion.p
+          initial={{ opacity: 0 }} whileInView={{ opacity: 1 }}
+          viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.4 }}
+          className="text-center mt-14 font-mono text-xs text-slate-600 tracking-wider">
+          POWERED BY TF-IDF · LOGISTIC REGRESSION · SCIKIT-LEARN · REACT 18
         </motion.p>
-      </div>
-    </motion.div>
+      </section>
+    </div>
   );
 }

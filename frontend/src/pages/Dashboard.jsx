@@ -36,79 +36,80 @@ export default function Dashboard() {
   } : null;
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <Activity className="text-indigo-400" size={28}/>
-            <h1 className="text-3xl font-black text-slate-100">Mission Control</h1>
-          </div>
-          <p className="text-slate-400 ml-10">Aggregate performance across all three NLP challenges</p>
-        </div>
-        <button onClick={handleDownload} disabled={downloading}
-          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700
-            disabled:opacity-50 text-white font-semibold px-4 py-2.5 rounded-xl
-            text-sm transition-colors">
-          <Download size={16}/>
-          {downloading ? 'Preparing...' : 'Download All Predictions (ZIP)'}
-        </button>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        {summaryCards.length === 0
-          ? [0,1,2].map(i => (
-            <div key={i} className="card p-6 animate-pulse">
-              <div className="h-3 bg-[#2D3748] rounded w-32 mb-3"/>
-              <div className="h-10 bg-[#2D3748] rounded w-24"/>
+    <div className="min-h-screen" style={{ background: '#03040A' }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="space-y-12 max-w-6xl mx-auto">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-12">
+            <div className="flex items-center gap-5">
+              <div>
+                <h1 className="font-display text-5xl font-bold text-white">Mission Control</h1>
+                <p className="text-slate-400 mt-2">Aggregate performance across all NLP challenges</p>
+              </div>
             </div>
-          ))
-          : summaryCards.map((c, i) => (
-            <div key={i} className={`card p-6 border ${c.border}`}>
-              <p className="text-xs text-slate-500 mb-1">{c.label}</p>
-              <p className={`text-4xl font-black ${c.color}`}>
-                {c.value != null ? `${(c.value * 100).toFixed(1)}%` : '—'}
-              </p>
-            </div>
-          ))
-        }
-      </div>
+            <button onClick={handleDownload} disabled={downloading}
+              className="btn-primary flex items-center gap-2 whitespace-nowrap">
+              <Download size={18}/>
+              {downloading ? 'Preparing Archive...' : 'Download Predictions (.zip)'}
+            </button>
+          </div>
 
-      {/* Model Comparison Charts */}
-      {comparisonData && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="card p-5">
-            <p className="text-sm font-semibold text-amber-400 mb-3">🚨 Challenge 1 — F1 Score</p>
-            <ComparisonChart comparison={comparisonData.c1} metricLabel="F1 Score"/>
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            {summaryCards.length === 0
+              ? [0,1,2].map(i => (
+                <div key={i} className="glass-card p-8 animate-pulse border-t-4 border-white/10">
+                  <div className="h-4 bg-white/10 rounded w-1/2 mb-4"/>
+                  <div className="h-12 bg-white/10 rounded w-1/3"/>
+                </div>
+              ))
+              : summaryCards.map((c, i) => (
+                <div key={i} className={`glass-card p-8 border-t-4 ${c.border} group hover:-translate-y-2 relative overflow-hidden`}>
+                  <p className="text-xs text-gray-400 mb-3 font-mono uppercase tracking-widest">{c.label}</p>
+                  <p className="font-display text-5xl font-bold gradient-text group-hover:scale-105 transition-transform transform origin-left">
+                    {c.value != null ? `${(c.value * 100).toFixed(1)}%` : '—'}
+                  </p>
+                </div>
+              ))
+            }
           </div>
-          <div className="card p-5">
-            <p className="text-sm font-semibold text-red-400 mb-3">📰 Challenge 2 — Accuracy</p>
-            <ComparisonChart comparison={comparisonData.c2} metricLabel="Accuracy"/>
-          </div>
-          <div className="card p-5">
-            <p className="text-sm font-semibold text-cyan-400 mb-3">🌐 Challenge 3 — ROC-AUC</p>
-            <ComparisonChart comparison={comparisonData.c3} metricLabel="ROC-AUC"/>
-          </div>
-        </div>
-      )}
 
-      {/* Architecture note */}
-      <div className="card p-6 mt-6">
-        <p className="text-sm font-semibold text-slate-300 mb-3">📐 Architecture Overview</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-400">
-          {[
-            { ch: 'Challenge 1', model: 'TF-IDF (15k, ngram 1-2) + Logistic Regression (balanced)', metric: 'Macro F1' },
-            { ch: 'Challenge 2', model: 'TF-IDF (20k, title+text) + Logistic Regression (C=5)', metric: 'Accuracy' },
-            { ch: 'Challenge 3', model: 'TF-IDF (15k) + Logistic Regression (balanced)', metric: 'ROC-AUC' },
-          ].map((m, i) => (
-            <div key={i} className="bg-[#111827] rounded-lg p-3">
-              <p className="font-semibold text-slate-200 mb-1">{m.ch}</p>
-              <p className="text-slate-500">{m.model}</p>
-              <p className="text-indigo-400 mt-1 font-mono">Metric: {m.metric}</p>
+          {/* Model Comparison Charts */}
+          {comparisonData && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="glass-card p-6 border-t-2 border-amber-500/30">
+                <p className="text-sm font-display font-bold text-amber-400 mb-6 uppercase tracking-widest flex items-center gap-2">🚨 C1 F1 Score</p>
+                <ComparisonChart comparison={comparisonData.c1} metricLabel="F1 Score"/>
+              </div>
+              <div className="glass-card p-6 border-t-2 border-red-500/30">
+                <p className="text-sm font-display font-bold text-red-400 mb-6 uppercase tracking-widest flex items-center gap-2">📰 C2 Accuracy</p>
+                <ComparisonChart comparison={comparisonData.c2} metricLabel="Accuracy"/>
+              </div>
+              <div className="glass-card p-6 border-t-2 border-cyan-500/30">
+                <p className="text-sm font-display font-bold text-cyan-400 mb-6 uppercase tracking-widest flex items-center gap-2">🌐 C3 ROC-AUC</p>
+                <ComparisonChart comparison={comparisonData.c3} metricLabel="ROC-AUC"/>
+              </div>
             </div>
-          ))}
-        </div>
+          )}
+
+          {/* Architecture note */}
+          <div className="glass-card p-8 mt-12 hover:border-[rgba(99,102,241,0.4)] transition-colors">
+            <p className="font-display font-semibold text-white mb-6 text-base">📐 Architecture Overview</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-gray-400">
+              {[
+                { ch: 'Challenge 1', model: 'TF-IDF (15k, ngram 1-2) + Logistic Regression (balanced)', metric: 'Macro F1' },
+                { ch: 'Challenge 2', model: 'TF-IDF (20k, title+text) + Logistic Regression (C=5)', metric: 'Accuracy' },
+                { ch: 'Challenge 3', model: 'TF-IDF (15k) + Logistic Regression (balanced)', metric: 'ROC-AUC' },
+              ].map((m, i) => (
+                <div key={i} className="bg-black/40 rounded-xl p-5 border border-white/5">
+                  <p className="font-display font-bold text-white mb-2">{m.ch}</p>
+                  <p className="text-gray-400 leading-relaxed mb-3">{m.model}</p>
+                  <p className="text-brand-violet font-mono text-xs uppercase tracking-widest">Metric: {m.metric}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
       </div>
-    </motion.div>
+    </div>
   );
 }

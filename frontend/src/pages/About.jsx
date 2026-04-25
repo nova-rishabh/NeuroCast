@@ -50,21 +50,21 @@ const sections = [
 function Accordion({ section }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className={`card border ${section.color.split(' ')[1]} overflow-hidden`}>
+    <div className={`glass-card border-t-2 ${section.color.split(' ')[1]} overflow-hidden transition-all duration-300`}>
       <button onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between p-5 text-left">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">{section.icon}</span>
-          <span className={`font-bold ${section.color.split(' ')[0]}`}>{section.title}</span>
+        className="w-full flex items-center justify-between p-6 text-left hover:bg-white/5 transition-colors">
+        <div className="flex items-center gap-4">
+          <span className="text-3xl bg-white/5 p-3 rounded-2xl">{section.icon}</span>
+          <span className={`text-xl font-heading font-bold ${section.color.split(' ')[0]}`}>{section.title}</span>
         </div>
-        {open ? <ChevronUp size={18} className="text-slate-500"/> : <ChevronDown size={18} className="text-slate-500"/>}
+        {open ? <ChevronUp size={20} className="text-gray-400"/> : <ChevronDown size={20} className="text-gray-400"/>}
       </button>
       {open && (
-        <div className="px-5 pb-5 space-y-3 border-t border-[#2D3748]">
+        <div className="px-6 pb-6 space-y-4 border-t border-white/10 pt-4 bg-black/20">
           {section.items.map((item, i) => (
-            <div key={i} className="pt-3">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">{item.label}</p>
-              <p className="text-sm text-slate-300">{item.value}</p>
+            <div key={i} className="pt-2">
+              <p className="text-xs font-mono font-bold text-gray-500 uppercase tracking-widest mb-2">{item.label}</p>
+              <p className="text-sm text-gray-300 leading-relaxed font-sans">{item.value}</p>
             </div>
           ))}
         </div>
@@ -77,59 +77,65 @@ export default function About() {
   const stack = ['Python 3.11', 'Flask', 'scikit-learn', 'TF-IDF', 'React 18', 'Vite', 'Tailwind CSS', 'Chart.js'];
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-      <div className="flex items-center gap-3 mb-8">
-        <BookOpen className="text-indigo-400" size={28}/>
-        <div>
-          <h1 className="text-3xl font-black text-slate-100">Methodology & Documentation</h1>
-          <p className="text-slate-400 text-sm">NeuroCast · NeuroLogic '26 · GGITS AIML Dept · April 25, 2026</p>
-        </div>
-      </div>
+    <div className="min-h-screen" style={{ background: '#03040A' }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="max-w-4xl mx-auto space-y-12">
+          <div className="flex items-center gap-4 mb-12">
+            <div className="p-4 bg-[rgba(99,102,241,0.1)] rounded-2xl border border-[rgba(99,102,241,0.2)]">
+               <BookOpen className="text-brand-violet" size={32}/>
+            </div>
+            <div>
+              <h1 className="font-display text-5xl font-bold text-white">Methodology & Documentation</h1>
+              <p className="text-slate-400 text-sm mt-2 font-mono uppercase tracking-widest">NeuroCast · NeuroLogic '26 · GGITS AIML Dept · April 25, 2026</p>
+            </div>
+          </div>
 
-      {/* Hackathon context */}
-      <div className="card p-6 mb-6 border border-indigo-500/30"
-        style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.1), rgba(30,36,51,1))' }}>
-        <p className="text-indigo-300 font-bold text-lg mb-1">NeuroLogic '26 — Global NLP Datathon</p>
-        <p className="text-slate-400 text-sm">
-          Hosted by the Department of AI & Machine Learning, Gyan Ganga Institute of Technology & Sciences.
-          A 12-hour sprint tackling three real-world NLP challenges with prizes worth $1,250 USD.
-        </p>
-        <div className="flex flex-wrap gap-2 mt-3">
-          {['F1-Score (C1)', 'Accuracy (C2)', 'ROC-AUC (C3)'].map(m => (
-            <span key={m} className="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30
-              px-2 py-0.5 rounded-full">{m}</span>
-          ))}
-        </div>
-      </div>
+          {/* Hackathon context */}
+          <div className="glass-card p-8 mb-8 relative overflow-hidden" style={{
+            background: 'linear-gradient(135deg, rgba(99,102,241,0.15), rgba(17,19,39,0.8))'
+          }}>
+            <p className="text-brand-purple font-display font-bold text-2xl mb-2">NeuroLogic '26 — Global NLP Datathon</p>
+            <p className="text-slate-300 text-base leading-relaxed max-w-3xl">
+              Hosted by the Department of AI & Machine Learning, Gyan Ganga Institute of Technology & Sciences.
+              A 12-hour sprint tackling three real-world NLP challenges with prizes worth $1,250 USD.
+            </p>
+            <div className="flex flex-wrap gap-3 mt-6">
+              {['F1-Score (C1)', 'Accuracy (C2)', 'ROC-AUC (C3)'].map(m => (
+                <span key={m} className="text-xs bg-[rgba(99,102,241,0.2)] text-white border border-[rgba(99,102,241,0.4)]
+                  px-3 py-1 rounded-full font-mono uppercase tracking-wider">{m}</span>
+              ))}
+            </div>
+          </div>
 
-      {/* Accordions */}
-      <div className="space-y-3 mb-8">
-        {sections.map(s => <Accordion key={s.id} section={s}/>)}
-      </div>
+          {/* Accordions */}
+          <div className="space-y-6 mb-12">
+            {sections.map(s => <Accordion key={s.id} section={s}/>)}
+          </div>
 
-      {/* Tech stack */}
-      <div className="card p-6 mb-6">
-        <p className="text-sm font-semibold text-slate-300 mb-3">⚙️ Tech Stack</p>
-        <div className="flex flex-wrap gap-2">
-          {stack.map(t => (
-            <span key={t} className="text-xs bg-[#111827] border border-[#2D3748] text-slate-300
-              px-3 py-1.5 rounded-lg font-mono">{t}</span>
-          ))}
-        </div>
-      </div>
+          {/* Tech stack */}
+          <div className="glass-card p-8 mb-8">
+            <p className="text-sm font-display font-bold text-white mb-4 uppercase tracking-widest flex items-center gap-2"><Code size={18} className="text-brand-cyan"/> Tech Stack</p>
+            <div className="flex flex-wrap gap-3">
+              {stack.map(t => (
+                <span key={t} className="text-xs bg-[#0D0F1C] border border-[rgba(99,102,241,0.2)] text-brand-purple
+                  px-4 py-2 rounded-xl font-mono">{t}</span>
+              ))}
+            </div>
+          </div>
 
-      {/* GitHub */}
-      <div className="card p-6 flex items-center justify-between">
-        <div>
-          <p className="font-semibold text-slate-200">GitHub Repository</p>
-          <p className="text-sm text-slate-500">Public repo with full code, README, and prediction files</p>
-        </div>
-        <a href="https://github.com/nova-rishabh/NeuroCast" target="_blank" rel="noopener noreferrer"
-          className="flex items-center gap-2 bg-[#111827] hover:bg-[#1E2433] border border-[#2D3748]
-            text-slate-300 px-4 py-2 rounded-xl text-sm font-semibold transition-colors">
-          <Code size={16}/> View on GitHub
-        </a>
+          {/* GitHub */}
+          <div className="glass-card p-8 flex items-center justify-between group hover:border-[rgba(99,102,241,0.4)] transition-colors">
+            <div>
+              <p className="font-display font-bold text-xl text-white">GitHub Repository</p>
+              <p className="text-sm text-slate-400 mt-1">Public repo with full code, README, and prediction files</p>
+            </div>
+            <a href="https://github.com/nova-rishabh/NeuroCast" target="_blank" rel="noopener noreferrer"
+              className="btn-primary flex items-center gap-2 whitespace-nowrap">
+              <Code size={18}/> View on GitHub
+            </a>
+          </div>
+        </motion.div>
       </div>
-    </motion.div>
+    </div>
   );
 }
