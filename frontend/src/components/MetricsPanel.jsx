@@ -1,53 +1,53 @@
-import React from 'react';
-import { Target, Activity, Zap, CheckCircle2 } from 'lucide-react';
+import { TrendingUp, Target, RefreshCw, CheckCircle } from 'lucide-react';
 
 export default function MetricsPanel({ metrics, challenge }) {
   if (!metrics) {
     return (
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="card p-4 h-24 bg-slate-200 animate-pulse rounded-xl"></div>
+      <div className="grid grid-cols-2 gap-3">
+        {[0,1,2,3].map(i => (
+          <div key={i} className="card p-4 animate-pulse">
+            <div className="h-3 bg-[#2D3748] rounded mb-2 w-16"/>
+            <div className="h-8 bg-[#2D3748] rounded w-20"/>
+          </div>
         ))}
       </div>
     );
   }
 
-  let displayMetrics = [];
-
-  const formatVal = (val) => (val * 100).toFixed(1) + '%';
-
-  if (challenge === 1) {
-    displayMetrics = [
-      { name: 'Macro F1-Score', value: formatVal(metrics.f1), icon: <Target className="text-amber-500" /> },
-      { name: 'Precision', value: formatVal(metrics.precision), icon: <CheckCircle2 className="text-amber-500" /> },
-      { name: 'Recall', value: formatVal(metrics.recall), icon: <Activity className="text-amber-500" /> },
-      { name: 'Accuracy', value: formatVal(metrics.accuracy), icon: <Zap className="text-amber-500" /> },
-    ];
-  } else if (challenge === 2) {
-    displayMetrics = [
-      { name: 'Accuracy', value: formatVal(metrics.accuracy), icon: <Zap className="text-red-500" /> },
-      { name: 'Precision', value: formatVal(metrics.precision), icon: <CheckCircle2 className="text-red-500" /> },
-      { name: 'Recall', value: formatVal(metrics.recall), icon: <Activity className="text-red-500" /> },
-      { name: 'F1-Score', value: formatVal(metrics.f1), icon: <Target className="text-red-500" /> },
-    ];
-  } else if (challenge === 3) {
-    displayMetrics = [
-      { name: 'ROC-AUC', value: formatVal(metrics.roc_auc), icon: <Target className="text-cyan-500" /> },
-      { name: 'Accuracy', value: formatVal(metrics.accuracy), icon: <Zap className="text-cyan-500" /> },
-      { name: 'F1-Score', value: formatVal(metrics.f1 || 0), icon: <CheckCircle2 className="text-cyan-500" /> },
-      { name: 'Threshold', value: '0.5', icon: <Activity className="text-gray-500" /> },
-    ];
-  }
+  const items = {
+    1: [
+      { label: 'F1 Score', value: metrics.f1, icon: TrendingUp, color: 'text-amber-400' },
+      { label: 'Precision', value: metrics.precision, icon: Target, color: 'text-indigo-400' },
+      { label: 'Recall', value: metrics.recall, icon: RefreshCw, color: 'text-cyan-400' },
+      { label: 'Accuracy', value: metrics.accuracy, icon: CheckCircle, color: 'text-green-400' },
+    ],
+    2: [
+      { label: 'Accuracy', value: metrics.accuracy, icon: CheckCircle, color: 'text-red-400' },
+      { label: 'Precision', value: metrics.precision, icon: Target, color: 'text-indigo-400' },
+      { label: 'Recall', value: metrics.recall, icon: RefreshCw, color: 'text-cyan-400' },
+      { label: 'F1 Score', value: metrics.f1, icon: TrendingUp, color: 'text-green-400' },
+    ],
+    3: [
+      { label: 'ROC-AUC', value: metrics.roc_auc, icon: TrendingUp, color: 'text-cyan-400' },
+      { label: 'Accuracy', value: metrics.accuracy, icon: CheckCircle, color: 'text-green-400' },
+      { label: 'F1 Score', value: metrics.f1, icon: Target, color: 'text-indigo-400' },
+      { label: 'Model', value: 'LR+TF-IDF', icon: RefreshCw, color: 'text-slate-400', isText: true },
+    ],
+  }[challenge] || [];
 
   return (
-    <div className="grid grid-cols-2 gap-4 mb-6">
-      {displayMetrics.map((m, i) => (
-        <div key={i} className="card p-4 flex flex-col justify-between hover:border-brand-indigo transition-colors">
-          <div className="flex items-center space-x-2 mb-2 text-brand-gray">
-            {m.icon}
-            <span className="text-sm font-medium">{m.name}</span>
+    <div className="grid grid-cols-2 gap-3">
+      {items.map((item, i) => (
+        <div key={i} className="card p-4">
+          <div className="flex items-center gap-2 mb-1">
+            <item.icon size={14} className={item.color} />
+            <span className="text-xs text-slate-500">{item.label}</span>
           </div>
-          <div className="text-2xl font-bold text-brand-navy">{m.value}</div>
+          <p className={`text-2xl font-bold ${item.color}`}>
+            {item.isText ? item.value : item.value != null
+              ? (item.value > 1 ? item.value : (item.value * 100).toFixed(1) + '%')
+              : '—'}
+          </p>
         </div>
       ))}
     </div>

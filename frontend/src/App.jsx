@@ -1,7 +1,13 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
+import {
+  Chart as ChartJS,
+  CategoryScale, LinearScale, BarElement, LineElement,
+  PointElement, ArcElement, Title, Tooltip, Legend, Filler
+} from 'chart.js';
+ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement,
+  PointElement, ArcElement, Title, Tooltip, Legend, Filler);
 
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Challenge1 from './pages/Challenge1';
@@ -10,45 +16,38 @@ import Challenge3 from './pages/Challenge3';
 import Dashboard from './pages/Dashboard';
 import About from './pages/About';
 
-function AppRoutes() {
-  const location = useLocation();
-  return (
-      <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<Home />} />
-        <Route path="/challenge/1" element={<Challenge1 />} />
-        <Route path="/challenge/2" element={<Challenge2 />} />
-        <Route path="/challenge/3" element={<Challenge3 />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/about" element={<About />} />
-      </Routes>
-  );
-}
-
 export default function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-brand-light text-brand-dark flex flex-col relative overflow-hidden">
-        {/* Subtle grid pattern background overlay */}
-        <div className="absolute inset-0 z-0 bg-grid-pattern opacity-50 pointer-events-none"></div>
-
+      <div className="min-h-screen bg-[#03040A] text-slate-100">
         <Navbar />
-        <main className="flex-grow flex flex-col z-10 relative max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
-          <AppRoutes />
+        <main>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/challenge/1" element={<Challenge1 />} />
+            <Route path="/challenge/2" element={<Challenge2 />} />
+            <Route path="/challenge/3" element={<Challenge3 />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/about" element={<About />} />
+          </Routes>
         </main>
-        <footer className="text-center py-8 text-brand-gray text-sm border-t border-brand-border mt-auto bg-brand-light z-10 relative">
-          NeuroLogic '26 Datathon • Global NLP Intelligence Platform
+        <footer className="border-t border-[rgba(99,102,241,0.1)] py-8 px-6 mt-20">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <img src="/NeuroCast.png" alt="NeuroCast" className="h-6 w-6 object-contain opacity-60"/>
+              <span className="font-mono text-xs text-slate-600">
+                NeuroCast · Built for NeuroLogic '26 · GGITS AIML · April 25, 2026
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"/>
+              <span className="font-mono text-xs text-slate-600">All systems operational</span>
+            </div>
+          </div>
         </footer>
-        <Toaster
-          position="bottom-right"
-          toastOptions={{
-            style: {
-              background: '#FFFFFF',
-              color: '#0F172A',
-              border: '1px solid #E2E8F0',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
-            }
-          }}
-        />
+        <Toaster position="bottom-right" toastOptions={{
+          style: { background: '#111327', color: '#F8FAFC', border: '1px solid rgba(99,102,241,0.15)' }
+        }}/>
       </div>
     </Router>
   );

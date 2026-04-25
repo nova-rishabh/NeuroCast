@@ -1,64 +1,42 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 
 export default function PredictionBadge({ label, labelText, challenge }) {
-  let bgColor = 'bg-gray-600';
-  let textColor = 'text-white';
-  let dotColor = 'bg-gray-300';
-  let displayLabel = labelText;
+  const config = {
+    1: {
+      positive: { bg: 'bg-amber-500/20 border-amber-500/40 text-amber-300', icon: '🚨', display: 'INFORMATIVE' },
+      negative: { bg: 'bg-slate-500/20 border-slate-500/40 text-slate-300', icon: '💤', display: 'NOT INFORMATIVE' },
+      isPositive: label === 1,
+    },
+    2: {
+      positive: { bg: 'bg-green-500/20 border-green-500/40 text-green-300', icon: '✅', display: 'REAL NEWS' },
+      negative: { bg: 'bg-red-500/20 border-red-500/40 text-red-300', icon: '❌', display: 'FAKE NEWS' },
+      isPositive: label === 'TRUE',
+    },
+    3: {
+      positive: { bg: 'bg-red-500/20 border-red-500/40 text-red-300', icon: '⚠️', display: 'TOXIC' },
+      negative: { bg: 'bg-green-500/20 border-green-500/40 text-green-300', icon: '✅', display: 'NON-TOXIC' },
+      isPositive: label === 1,
+    },
+  };
 
-  if (challenge === 1) {
-    if (label === 1) {
-      bgColor = 'bg-red-100';
-      textColor = 'text-red-600';
-      dotColor = 'bg-red-600';
-      displayLabel = '🚨 INFORMATIVE';
-    } else {
-      bgColor = 'bg-slate-100';
-      textColor = 'text-slate-600';
-      dotColor = 'bg-slate-500';
-      displayLabel = '💤 NOT INFORMATIVE';
-    }
-  } else if (challenge === 2) {
-    if (label === 'TRUE') {
-      bgColor = 'bg-green-100';
-      textColor = 'text-green-700';
-      dotColor = 'bg-green-600';
-      displayLabel = '✅ REAL NEWS';
-    } else {
-      bgColor = 'bg-red-100';
-      textColor = 'text-red-600';
-      dotColor = 'bg-red-600';
-      displayLabel = '❌ FAKE NEWS';
-    }
-  } else if (challenge === 3) {
-    if (label === 1) {
-      bgColor = 'bg-orange-100';
-      textColor = 'text-orange-600';
-      dotColor = 'bg-orange-500';
-      displayLabel = '⚠️ TOXIC';
-    } else {
-      bgColor = 'bg-green-100';
-      textColor = 'text-green-700';
-      dotColor = 'bg-green-600';
-      displayLabel = '✅ NON-TOXIC';
-    }
-  }
+  const cfg = config[challenge];
+  const variant = cfg.isPositive ? cfg.positive : cfg.negative;
 
   return (
     <motion.div
       initial={{ scale: 0.8, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-      className="flex flex-col items-start space-y-2 mb-4"
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+      className="flex flex-col items-start gap-2"
     >
-      <div className={`flex items-center space-x-2 px-4 py-2 rounded-full border border-current ${bgColor} ${textColor} font-bold tracking-wider`}>
-        <span className={`w-2 h-2 rounded-full animate-ping ${dotColor}`}></span>
-        <span>{displayLabel}</span>
+      <div className={`flex items-center gap-2 px-4 py-2 rounded-full border font-bold text-lg ${variant.bg}`}>
+        <span>{variant.icon}</span>
+        <span>{variant.display}</span>
+        <span className="ml-1 w-2 h-2 rounded-full bg-current animate-pulse"/>
       </div>
-      <div className="font-mono text-xs text-gray-500">
-        Raw label: {String(label)}
-      </div>
+      <span className="font-mono text-xs text-slate-500 ml-1">
+        Raw label: <span className="text-slate-300">{String(label)}</span>
+      </span>
     </motion.div>
   );
 }

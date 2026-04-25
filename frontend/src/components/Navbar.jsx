@@ -1,86 +1,113 @@
-import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Sun, Moon, Menu, X, BrainCircuit } from 'lucide-react';
-import axios from 'axios';
+import { useState, useEffect } from 'react';
+import { api } from '../utils/api';
 
 export default function Navbar() {
-  const [darkMode, setDarkMode] = useState(true);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [modelStatus, setModelStatus] = useState(false);
   const location = useLocation();
+  const [scrolled, setScrolled] = useState(false);
+  const [health, setHealth] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    axios.get('/api/health').then(res => {
-      if (res.data.status === 'ok') setModelStatus(true);
-    }).catch(() => setModelStatus(false));
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    document.documentElement.classList.toggle('dark');
-  };
+  useEffect(() => {
+    api.health().then(r => setHealth(r.data)).catch(() => {});
+  }, []);
 
-  const navLinks = [
-    { name: 'Disaster', path: '/challenge/1' },
-    { name: 'Fake News', path: '/challenge/2' },
-    { name: 'Toxic', path: '/challenge/3' },
-    { name: 'Dashboard', path: '/dashboard' },
-    { name: 'About', path: '/about' },
+  const links = [
+    { to: '/', label: 'Home' },
+    { to: '/challenge/1', label: 'Challenge 1', dot: '#F59E0B' },
+    { to: '/challenge/2', label: 'Challenge 2', dot: '#EF4444' },
+    { to: '/challenge/3', label: 'Challenge 3', dot: '#2DD4BF' },
+    { to: '/dashboard', label: 'Dashboard' },
+    { to: '/about', label: 'Docs' },
   ];
 
+  const isActive = (to) =>
+    to === '/' ? location.pathname === '/' : location.pathname.startsWith(to);
+
   return (
-    <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-brand-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-2">
-              <img src="/logo.png" alt="NeuroCast Logo" className="h-8 w-8 object-contain" />
-              <span className="text-xl font-bold text-brand-navy tracking-tight">NeuroCast</span>
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      scrolled
+        ? 'bg-[#03040A]/90 backdrop-blur-xl border-b border-[rgba(99,102,241,0.12)] shadow-lg shadow-black/20'
+        : 'bg-transparent'
+    }`}>
+      <div className="max-w-7xl mx-auto px-6 lg:px-10 flex items-center justify-between h-16">
+
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-3 group">
+          <img src="/NeuroCast.png" alt="NeuroCast" className="h-8 w-8 object-contain" />
+          <span className="font-display font-bold text-lg text-white group-hover:text-brand-purple transition-colors">
+            NeuroCast
+          </span>
+        </Link>
+
+        {/* Desktop Nav */}
+        <div className="hidden md:flex items-center gap-1">
+          {links.map(l => (
+            <Link key={l.to} to={l.to}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium
+                transition-all duration-200
+                ${isActive(l.to)
+                  ? 'bg-[rgba(99,102,241,0.12)] text-brand-purple'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}>
+              {l.dot && (
+                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: l.dot }}/>
+              )}
+              {l.label}
             </Link>
-          </div>
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-6">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  to={link.path}
-                  className={`text-sm font-medium transition-colors ${
-                    location.pathname === link.path
-                      ? 'text-brand-indigo border-b-2 border-brand-indigo pb-1'
-                      : 'text-brand-gray hover:text-brand-navy'
-                  }`}
-                >
-                  {link.name}
-                </Link>
+          ))}
+        </div>
+
+        {/* Right side */}
+        <div className="flex items-center gap-3">
+          {/* Model health indicators */}
+          {health && (
+            <div className="hidden sm:flex items-center gap-1.5 bg-[rgba(13,15,28,0.8)] border border-[rgba(99,102,241,0.15)] rounded-full px-3 py-1.5">
+              {['disaster','fakenews','toxic'].map((k, i) => (
+                <div key={i} className="flex items-center gap-1">
+                  <span className={`w-1.5 h-1.5 rounded-full ${
+                    health.models?.[k] ? 'bg-green-400 shadow-[0_0_6px_#4ade80]' : 'bg-red-500'
+                  }`}/>
+                </div>
               ))}
+              <span className="text-xs text-slate-500 font-mono ml-1">models</span>
             </div>
-          </div>
-          <div className="hidden md:flex items-center space-x-4 text-brand-gray">
-             <div className="flex items-center space-x-1" title={modelStatus ? "Models Ready" : "Models Loading"}>
-                <div className={`h-2 w-2 rounded-full ${modelStatus ? 'bg-green-500' : 'bg-red-500'}`}></div>
-             </div>
-          </div>
-          <div className="md:hidden flex items-center">
-            <button onClick={() => setMenuOpen(!menuOpen)} className="text-brand-gray hover:text-brand-navy">
-              {menuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
+          )}
+
+          <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-mono
+            bg-[rgba(99,102,241,0.1)] text-brand-purple border border-[rgba(99,102,241,0.3)]
+            px-3 py-1.5 rounded-full">
+            <span className="w-1.5 h-1.5 bg-brand-violet rounded-full animate-pulse"/>
+            LIVE · NeuroLogic '26
+          </span>
+
+          {/* Mobile hamburger */}
+          <button onClick={() => setMenuOpen(!menuOpen)}
+            className="md:hidden flex flex-col gap-1 p-2">
+            <span className={`block w-5 h-0.5 bg-white transition-all ${menuOpen ? 'rotate-45 translate-y-1.5' : ''}`}/>
+            <span className={`block w-5 h-0.5 bg-white transition-all ${menuOpen ? 'opacity-0' : ''}`}/>
+            <span className={`block w-5 h-0.5 bg-white transition-all ${menuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}/>
+          </button>
         </div>
       </div>
+
+      {/* Mobile Menu */}
       {menuOpen && (
-        <div className="md:hidden bg-white border-b border-brand-border">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                to={link.path}
-                className="block px-3 py-2 rounded-md text-base font-medium text-brand-gray hover:text-brand-navy hover:bg-slate-50"
-                onClick={() => setMenuOpen(false)}
-              >
-                {link.name}
-              </Link>
-            ))}
-          </div>
+        <div className="md:hidden bg-[#0D0F1C] border-t border-[rgba(99,102,241,0.15)] px-6 py-4 space-y-1">
+          {links.map(l => (
+            <Link key={l.to} to={l.to} onClick={() => setMenuOpen(false)}
+              className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium
+                ${isActive(l.to) ? 'text-brand-purple bg-[rgba(99,102,241,0.1)]' : 'text-slate-400'}`}>
+              {l.dot && <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: l.dot }}/>}
+              {l.label}
+            </Link>
+          ))}
         </div>
       )}
     </nav>

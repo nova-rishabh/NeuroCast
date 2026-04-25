@@ -81,23 +81,31 @@ def c1_predict():
  
 @app.route('/api/challenge1/batch', methods=['POST']) 
 def c1_batch(): 
-    if 'csv_file' not in request.files: 
+    f = request.files.get('file') or request.files.get('csv_file')
+    if not f:
         return jsonify({"error": "No file uploaded"}), 400 
-    f = request.files['csv_file'] 
-    df = pd.read_csv(f) 
-    if 'text' not in df.columns: 
-        return jsonify({"error": "CSV must have a 'text' column"}), 400 
+
+    fname = f.filename.lower()
+    if fname.endswith('.xlsx'):
+        df = pd.read_excel(f)
+    else:
+        df = pd.read_csv(f)
+
+    df.columns = [str(c).strip().lower() for c in df.columns]
+    text_col = next((c for c in df.columns if 'text' in c or 'tweet' in c), None)
+    if text_col is None:
+        text_col = df.columns[0] # Fallback
+
     vec, model = load_model('disaster') 
     if vec is None: 
         return jsonify({"error": "Model not trained"}), 503 
-    df['text'] = df['text'].fillna('').astype(str) 
-    X = vec.transform(df['text'].values) 
+    df[text_col] = df[text_col].fillna('').astype(str)
+    X = vec.transform(df[text_col].values)
     df['label'] = model.predict(X).astype(int) 
-    out = io.StringIO() 
-    df.to_csv(out, index=False) 
-    out.seek(0) 
-    return send_file(io.BytesIO(out.getvalue().encode()), 
-                     mimetype='text/csv', 
+
+    csv_bytes = df.to_csv(index=False).encode('utf-8-sig')
+    return send_file(io.BytesIO(csv_bytes),
+                     mimetype='text/csv; charset=utf-8-sig',
                      as_attachment=True, 
                      download_name='disaster_predictions.csv') 
  
@@ -129,16 +137,32 @@ def c2_predict():
  
 @app.route('/api/challenge2/batch', methods=['POST']) 
 def c2_batch(): 
-    if 'csv_file' not in request.files: 
+    f = request.files.get('file') or request.files.get('csv_file')
+    if not f:
         return jsonify({"error": "No file uploaded"}), 400 
-    f = request.files['csv_file'] 
-    df = pd.read_csv(f) 
-    for col in ['title', 'text']: 
-        if col not in df.columns: 
-            df[col] = '' 
-    df['title'] = df['title'].fillna('').astype(str) 
-    df['text']  = df['text'].fillna('').astype(str) 
-    df['combined'] = df['title'] + ' ' + df['text'] 
+
+    fname = f.filename.lower()
+    if fname.endswith('.xlsx'):
+        df = pd.read_excel(f)
+    else:
+        df = pd.read_csv(f)
+
+    df.columns = [str(c).strip().lower() for c in df.columns]
+
+    # Try to find title and text columns robustly
+    title_col = next((c for c in df.columns if 'title' in c or 'headline' in c), None)
+    text_col = next((c for c in df.columns if 'text' in c or 'body' in c or 'article' in c), None)
+
+    # If standard columns aren't found, fallback to first and second columns if available
+    if title_col is None and len(df.columns) > 1:
+        title_col = df.columns[0]
+    if text_col is None:
+        text_col = df.columns[1] if len(df.columns) > 1 else df.columns[0]
+
+    title_data = df[title_col].fillna('').astype(str) if title_col else ''
+    text_data = df[text_col].fillna('').astype(str) if text_col else df.iloc[:,0].fillna('').astype(str)
+
+    df['combined'] = title_data + ' ' + text_data
     vec, model = load_model('fakenews') 
     if vec is None: 
         return jsonify({"error": "Model not trained"}), 503 
@@ -146,11 +170,10 @@ def c2_batch():
     preds = model.predict(X).astype(int) 
     df['label'] = ['TRUE' if p == 1 else 'FALSE' for p in preds] 
     df = df.drop(columns=['combined'], errors='ignore') 
-    out = io.StringIO() 
-    df.to_csv(out, index=False) 
-    out.seek(0) 
-    return send_file(io.BytesIO(out.getvalue().encode()), 
-                     mimetype='text/csv', 
+
+    csv_bytes = df.to_csv(index=False).encode('utf-8-sig')
+    return send_file(io.BytesIO(csv_bytes),
+                     mimetype='text/csv; charset=utf-8-sig',
                      as_attachment=True, 
                      download_name='fakenews_predictions.csv') 
  
@@ -182,29 +205,33 @@ def c3_predict():
  
 @app.route('/api/challenge3/batch', methods=['POST']) 
 def c3_batch(): 
-    if 'file' not in request.files: 
+    # Check 'file' or 'csv_file' to be safe
+    f = request.files.get('file') or request.files.get('csv_file')
+    if not f:
         return jsonify({"error": "No file uploaded"}), 400 
-    f = request.files['file'] 
     fname = f.filename.lower() 
     if fname.endswith('.xlsx'): 
         df = pd.read_excel(f) 
     else: 
         df = pd.read_csv(f) 
-    df.columns = [c.strip().lower() for c in df.columns] 
+    df.columns = [str(c).strip().lower() for c in df.columns]
     text_col = next((c for c in df.columns if 'text' in c or 'comment' in c), None) 
     if text_col is None: 
-        return jsonify({"error": "File must have a 'text' column"}), 400 
+        # Fallback: assume first column if 'text' or 'comment' is not found
+        text_col = df.columns[0]
     df[text_col] = df[text_col].fillna('').astype(str) 
     vec, model = load_model('toxic') 
     if vec is None: 
         return jsonify({"error": "Model not trained"}), 503 
     X = vec.transform(df[text_col].values) 
-    df['label'] = model.predict(X).astype(int) 
-    out = io.StringIO() 
-    df.to_csv(out, index=False) 
-    out.seek(0) 
-    return send_file(io.BytesIO(out.getvalue().encode()), 
-                     mimetype='text/csv', 
+    preds = model.predict(X).astype(int)
+    df['label'] = preds
+    df['label_text'] = ['True' if p == 1 else 'False' for p in preds]
+
+    # Use utf-8-sig to preserve Hindi characters in Excel/CSV
+    csv_bytes = df.to_csv(index=False).encode('utf-8-sig')
+    return send_file(io.BytesIO(csv_bytes),
+                     mimetype='text/csv; charset=utf-8-sig',
                      as_attachment=True, 
                      download_name='toxic_predictions.csv') 
  
@@ -234,10 +261,10 @@ def download_all():
             if vec1: 
                 X1 = vec1.transform(df1['text'].values) 
                 df1['label'] = m1.predict(X1).astype(int) 
-            out1 = df1.to_csv(index=False) 
+            out1 = df1.to_csv(index=False).encode('utf-8-sig')
             zf.writestr('disaster_predictions.csv', out1) 
         except Exception as e: 
-            zf.writestr('disaster_predictions_error.txt', str(e)) 
+            zf.writestr('disaster_predictions_error.txt', str(e).encode('utf-8-sig'))
  
         # Challenge 2 
         try: 
@@ -251,25 +278,27 @@ def download_all():
                 preds2 = m2.predict(X2).astype(int) 
                 df2['label'] = ['TRUE' if p == 1 else 'FALSE' for p in preds2] 
                 df2 = df2.drop(columns=['combined'], errors='ignore') 
-            out2 = df2.to_csv(index=False) 
+            out2 = df2.to_csv(index=False).encode('utf-8-sig')
             zf.writestr('fakenews_predictions.csv', out2) 
         except Exception as e: 
-            zf.writestr('fakenews_predictions_error.txt', str(e)) 
+            zf.writestr('fakenews_predictions_error.txt', str(e).encode('utf-8-sig'))
  
         # Challenge 3 
         try: 
             df3 = pd.read_excel(os.path.join(DATA_DIR, 'toxic_no_label_evaluation.xlsx')) 
-            df3.columns = [c.strip().lower() for c in df3.columns] 
+            df3.columns = [str(c).strip().lower() for c in df3.columns]
             text_col = next((c for c in df3.columns if 'text' in c or 'comment' in c), df3.columns[0]) 
             df3[text_col] = df3[text_col].fillna('').astype(str) 
             vec3, m3 = load_model('toxic') 
             if vec3: 
-                X3 = vec3.transform(df3[text_col].values) 
-                df3['label'] = m3.predict(X3).astype(int) 
-            out3 = df3.to_csv(index=False) 
+                X3 = vec3.transform(df3[text_col].values)
+                preds3 = m3.predict(X3).astype(int)
+                df3['label'] = preds3
+                df3['label_text'] = ['True' if p == 1 else 'False' for p in preds3]
+            out3 = df3.to_csv(index=False).encode('utf-8-sig')
             zf.writestr('toxic_predictions.csv', out3) 
         except Exception as e: 
-            zf.writestr('toxic_predictions_error.txt', str(e)) 
+            zf.writestr('toxic_predictions_error.txt', str(e).encode('utf-8-sig'))
  
     zip_buffer.seek(0) 
     return send_file(zip_buffer, mimetype='application/zip', 
