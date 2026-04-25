@@ -1,132 +1,112 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Activity, Target, Zap } from 'lucide-react';
-import { ComparisonChart } from '../components/ChartComponents';
-import { api } from '../utils/api';
+import { Download, Activity } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { api, downloadBlob } from '../utils/api';
+import { ComparisonChart } from '../components/ChartComponents';
 
 export default function Dashboard() {
   const [metrics, setMetrics] = useState(null);
-  const [historyLogs, setHistoryLogs] = useState([]);
   const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
-    api.dashboardMetrics().then(res => setMetrics(res.data)).catch(console.error);
-
-    const c1 = JSON.parse(sessionStorage.getItem('c1_history') || '[]');
-    const c2 = JSON.parse(sessionStorage.getItem('c2_history') || '[]');
-    const c3 = JSON.parse(sessionStorage.getItem('c3_history') || '[]');
-
-    const combined = [
-      ...c1.map(h => ({ ...h, ch: 'C1 (Disaster)', input: h.text, time: new Date().toLocaleTimeString() })),
-      ...c2.map(h => ({ ...h, ch: 'C2 (Fake News)', input: h.title, time: new Date().toLocaleTimeString() })),
-      ...c3.map(h => ({ ...h, ch: 'C3 (Toxic)', input: h.text, time: new Date().toLocaleTimeString() }))
-    ];
-    setHistoryLogs(combined.slice(0, 10));
+    api.dashboardMetrics().then(r => setMetrics(r.data)).catch(() => {});
   }, []);
 
-  const handleDownloadAll = async () => {
+  const handleDownload = async () => {
     setDownloading(true);
     try {
-      const res = await api.downloadAll();
-      const url = URL.createObjectURL(res.data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'neuroCast_all_predictions.zip';
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success('Downloaded ZIP file');
-    } catch (err) {
-      toast.error('Download failed');
-    }
-    setDownloading(false);
+      const r = await api.downloadAll();
+      downloadBlob(r.data, 'neuroCast_all_predictions.zip');
+      toast.success('All predictions downloaded!');
+    } catch { toast.error('Download failed.'); }
+    finally { setDownloading(false); }
   };
+
+  const summaryCards = metrics ? [
+    { label: 'Challenge 1 · F1 Score', value: metrics.challenge1?.f1, color: 'text-amber-400', border: 'border-amber-500/30' },
+    { label: 'Challenge 2 · Accuracy', value: metrics.challenge2?.accuracy, color: 'text-red-400', border: 'border-red-500/30' },
+    { label: 'Challenge 3 · ROC-AUC', value: metrics.challenge3?.roc_auc, color: 'text-cyan-400', border: 'border-cyan-500/30' },
+  ] : [];
+
+  const comparisonData = metrics ? {
+    c1: metrics.challenge1?.comparison,
+    c2: metrics.challenge2?.comparison,
+    c3: metrics.challenge3?.comparison,
+  } : null;
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-brand-navy flex items-center space-x-3">
-            <span className="text-brand-indigo">📊</span>
-            <span>Mission Control Dashboard</span>
-          </h1>
+          <div className="flex items-center gap-3 mb-1">
+            <Activity className="text-indigo-400" size={28}/>
+            <h1 className="text-3xl font-black text-slate-100">Mission Control</h1>
+          </div>
+          <p className="text-slate-400 ml-10">Aggregate performance across all three NLP challenges</p>
         </div>
-        <button
-          onClick={handleDownloadAll}
-          disabled={downloading}
-          className="mt-4 md:mt-0 flex items-center space-x-2 px-4 py-2 bg-brand-indigo hover:bg-brand-navy disabled:opacity-50 text-white rounded-lg transition-colors font-semibold shadow-md"
-        >
-          <Download size={18} />
-          <span>{downloading ? 'Zipping...' : 'Download All Prediction Files (ZIP)'}</span>
+        <button onClick={handleDownload} disabled={downloading}
+          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700
+            disabled:opacity-50 text-white font-semibold px-4 py-2.5 rounded-xl
+            text-sm transition-colors">
+          <Download size={16}/>
+          {downloading ? 'Preparing...' : 'Download All Predictions (ZIP)'}
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="card p-6 flex flex-col items-center text-center group hover:border-brand-indigo transition-colors">
-          <Target className="text-amber-500 mb-2 group-hover:scale-110 transition-transform" size={28} />
-          <h3 className="text-sm font-semibold text-brand-gray">C1: Best F1 Score</h3>
-          <div className="text-4xl font-bold text-brand-indigo mt-2">
-            {metrics?.challenge1?.f1 ? (metrics.challenge1.f1 * 100).toFixed(1) + '%' : '...'}
-          </div>
-        </div>
-        <div className="card p-6 flex flex-col items-center text-center group hover:border-brand-indigo transition-colors">
-          <Zap className="text-red-500 mb-2 group-hover:scale-110 transition-transform" size={28} />
-          <h3 className="text-sm font-semibold text-brand-gray">C2: Best Accuracy</h3>
-          <div className="text-4xl font-bold text-brand-indigo mt-2">
-            {metrics?.challenge2?.accuracy ? (metrics.challenge2.accuracy * 100).toFixed(1) + '%' : '...'}
-          </div>
-        </div>
-        <div className="card p-6 flex flex-col items-center text-center group hover:border-brand-indigo transition-colors">
-          <Activity className="text-cyan-500 mb-2 group-hover:scale-110 transition-transform" size={28} />
-          <h3 className="text-sm font-semibold text-brand-gray">C3: Best ROC-AUC</h3>
-          <div className="text-4xl font-bold text-brand-indigo mt-2">
-            {metrics?.challenge3?.roc_auc ? (metrics.challenge3.roc_auc * 100).toFixed(1) + '%' : '...'}
-          </div>
-        </div>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        {summaryCards.length === 0
+          ? [0,1,2].map(i => (
+            <div key={i} className="card p-6 animate-pulse">
+              <div className="h-3 bg-[#2D3748] rounded w-32 mb-3"/>
+              <div className="h-10 bg-[#2D3748] rounded w-24"/>
+            </div>
+          ))
+          : summaryCards.map((c, i) => (
+            <div key={i} className={`card p-6 border ${c.border}`}>
+              <p className="text-xs text-slate-500 mb-1">{c.label}</p>
+              <p className={`text-4xl font-black ${c.color}`}>
+                {c.value != null ? `${(c.value * 100).toFixed(1)}%` : '—'}
+              </p>
+            </div>
+          ))
+        }
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <div className="card p-6">
-          <h3 className="text-lg font-semibold mb-4 text-brand-navy">How Our Models Compare</h3>
-          <div className="space-y-6">
-            <div>
-              <h4 className="text-xs text-brand-gray mb-2 font-semibold uppercase tracking-wider">Challenge 1 (F1-Score)</h4>
-              <ComparisonChart comparisonData={metrics?.challenge1?.comparison} />
-            </div>
+      {/* Model Comparison Charts */}
+      {comparisonData && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="card p-5">
+            <p className="text-sm font-semibold text-amber-400 mb-3">🚨 Challenge 1 — F1 Score</p>
+            <ComparisonChart comparison={comparisonData.c1} metricLabel="F1 Score"/>
+          </div>
+          <div className="card p-5">
+            <p className="text-sm font-semibold text-red-400 mb-3">📰 Challenge 2 — Accuracy</p>
+            <ComparisonChart comparison={comparisonData.c2} metricLabel="Accuracy"/>
+          </div>
+          <div className="card p-5">
+            <p className="text-sm font-semibold text-cyan-400 mb-3">🌐 Challenge 3 — ROC-AUC</p>
+            <ComparisonChart comparison={comparisonData.c3} metricLabel="ROC-AUC"/>
           </div>
         </div>
-        <div className="card p-6">
-          <h3 className="text-lg font-semibold mb-4 text-brand-navy">Session Prediction Log</h3>
-          {historyLogs.length === 0 ? (
-            <div className="text-center text-brand-gray py-12 bg-slate-50 rounded-xl border border-dashed border-slate-300">
-              No predictions yet — try a challenge!
+      )}
+
+      {/* Architecture note */}
+      <div className="card p-6 mt-6">
+        <p className="text-sm font-semibold text-slate-300 mb-3">📐 Architecture Overview</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-400">
+          {[
+            { ch: 'Challenge 1', model: 'TF-IDF (15k, ngram 1-2) + Logistic Regression (balanced)', metric: 'Macro F1' },
+            { ch: 'Challenge 2', model: 'TF-IDF (20k, title+text) + Logistic Regression (C=5)', metric: 'Accuracy' },
+            { ch: 'Challenge 3', model: 'TF-IDF (15k) + Logistic Regression (balanced)', metric: 'ROC-AUC' },
+          ].map((m, i) => (
+            <div key={i} className="bg-[#111827] rounded-lg p-3">
+              <p className="font-semibold text-slate-200 mb-1">{m.ch}</p>
+              <p className="text-slate-500">{m.model}</p>
+              <p className="text-indigo-400 mt-1 font-mono">Metric: {m.metric}</p>
             </div>
-          ) : (
-            <div className="overflow-x-auto rounded-xl border border-brand-border">
-              <table className="w-full text-sm text-left text-brand-gray">
-                <thead className="text-xs uppercase bg-slate-100 text-brand-gray border-b border-brand-border">
-                  <tr>
-                    <th className="px-4 py-3">Challenge</th>
-                    <th className="px-4 py-3">Input Preview</th>
-                    <th className="px-4 py-3">Label</th>
-                    <th className="px-4 py-3">Confidence</th>
-                    <th className="px-4 py-3">Time</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-brand-border">
-                  {historyLogs.map((log, i) => (
-                    <tr key={i} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-4 py-3 font-medium text-brand-navy">{log.ch}</td>
-                      <td className="px-4 py-3 truncate max-w-[150px]">{log.input}</td>
-                      <td className="px-4 py-3 font-mono text-brand-navy bg-slate-100 rounded px-2 py-1 inline-block mt-2">{String(log.label)}</td>
-                      <td className="px-4 py-3 font-semibold text-brand-indigo">{(log.confidence * 100).toFixed(1)}%</td>
-                      <td className="px-4 py-3 text-xs text-slate-500">{log.time}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          ))}
         </div>
       </div>
     </motion.div>

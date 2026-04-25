@@ -1,101 +1,79 @@
-import React, { useRef, useState } from 'react';
-import { CloudUpload, Loader2, Download } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { UploadCloud, Download, Loader } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { downloadBlob } from '../utils/api';
 
-export default function BatchUploader({ onUpload, accept, isLoading, challenge }) {
-  const fileInputRef = useRef(null);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [dragActive, setDragActive] = useState(false);
+export default function BatchUploader({ onBatch, accept = '.csv', challenge, fileName = 'predictions.csv' }) {
+  const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+  const [resultBlob, setResultBlob] = useState(null);
+  const inputRef = useRef();
 
-  const handleDrag = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
-      setDragActive(true);
-    } else if (e.type === 'dragleave') {
-      setDragActive(false);
-    }
+  const handleFile = (f) => {
+    setFile(f);
+    setDone(false);
+    setResultBlob(null);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      if (accept && !accept.includes(file.name.split('.').pop().toLowerCase()) && !accept.includes(file.type)) {
-        toast.error(`Invalid file type. Accepted: ${accept}`);
-        return;
-      }
-      setSelectedFile(file);
-    }
+    const f = e.dataTransfer.files[0];
+    if (f) handleFile(f);
   };
 
-  const handleChange = (e) => {
-    e.preventDefault();
-    if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
-    }
-  };
-
-  const handleUpload = () => {
-    if (selectedFile) {
-      onUpload(selectedFile);
+  const handleRun = async () => {
+    if (!file) return;
+    setLoading(true);
+    try {
+      const res = await onBatch(file);
+      setResultBlob(res.data);
+      setDone(true);
+      toast.success('Batch prediction complete!');
+    } catch (e) {
+      toast.error('Batch prediction failed. Check your file format.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="card p-6 mt-6 border-brand-border">
-      <h3 className="text-lg font-semibold mb-4 text-brand-navy">Batch Predict</h3>
-      
-      {!selectedFile ? (
-        <div
-          className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
-            dragActive ? 'border-brand-indigo bg-brand-indigo/5 scale-[1.02]' : 'border-slate-300 hover:border-brand-indigo hover:bg-slate-50'
-          }`}
-          onDragEnter={handleDrag}
-          onDragLeave={handleDrag}
-          onDragOver={handleDrag}
-          onDrop={handleDrop}
-          onClick={() => fileInputRef.current.click()}
-        >
-          <CloudUpload className={`mx-auto h-10 w-10 mb-2 transition-colors ${dragActive ? 'text-brand-indigo' : 'text-slate-400'}`} />
-          <p className="text-sm text-brand-navy font-medium">Drag & drop or click to upload</p>
-          <p className="text-xs text-brand-gray mt-1">Accepts {accept}</p>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={accept}
-            onChange={handleChange}
-            className="hidden"
-          />
-        </div>
-      ) : (
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col items-center justify-center">
-          <p className="text-sm text-brand-indigo mb-4 font-mono break-all font-medium">{selectedFile.name}</p>
-          
-          {isLoading ? (
-            <div className="flex items-center text-brand-indigo space-x-2">
-              <Loader2 className="animate-spin h-5 w-5" />
-              <span className="font-medium">Running NLP Pipeline...</span>
-            </div>
-          ) : (
-            <div className="flex space-x-3 w-full">
-              <button
-                onClick={() => setSelectedFile(null)}
-                className="flex-1 py-2 px-4 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 transition-colors text-sm font-medium"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleUpload}
-                className="flex-1 py-2 px-4 rounded-lg bg-brand-indigo hover:bg-brand-navy transition-colors text-sm font-semibold flex items-center justify-center space-x-2 text-white shadow-sm"
-              >
-                <span>Run Batch</span>
-              </button>
-            </div>
-          )}
-        </div>
+    <div className="mt-4">
+      <p className="text-sm font-semibold text-slate-300 mb-2">Batch Predict</p>
+      <div
+        onDragOver={e => e.preventDefault()}
+        onDrop={handleDrop}
+        onClick={() => inputRef.current.click()}
+        className="border-2 border-dashed border-[#2D3748] hover:border-indigo-500/50
+          rounded-xl p-5 text-center cursor-pointer transition-colors"
+      >
+        <UploadCloud className="mx-auto mb-2 text-slate-500" size={28}/>
+        <p className="text-sm text-slate-400">
+          {file ? file.name : `Drag & drop or click to upload (${accept})`}
+        </p>
+        <input ref={inputRef} type="file" accept={accept} className="hidden"
+          onChange={e => handleFile(e.target.files[0])}/>
+      </div>
+
+      {challenge === 1 && <p className="text-xs text-slate-600 mt-1">CSV must have a "text" column</p>}
+      {challenge === 2 && <p className="text-xs text-slate-600 mt-1">CSV must have "title" and "text" columns</p>}
+      {challenge === 3 && <p className="text-xs text-slate-600 mt-1">File must have a "text" column</p>}
+
+      {file && !done && (
+        <button onClick={handleRun} disabled={loading}
+          className="mt-3 w-full flex items-center justify-center gap-2 bg-indigo-600
+            hover:bg-indigo-700 text-white rounded-xl py-2.5 text-sm font-semibold
+            disabled:opacity-50 transition-colors">
+          {loading ? <><Loader size={16} className="animate-spin"/> Running NLP Pipeline...</> : 'Run Batch Predict'}
+        </button>
+      )}
+
+      {done && resultBlob && (
+        <button onClick={() => downloadBlob(resultBlob, fileName)}
+          className="mt-3 w-full flex items-center justify-center gap-2 bg-green-600
+            hover:bg-green-700 text-white rounded-xl py-2.5 text-sm font-semibold transition-colors">
+          <Download size={16}/> Download Results CSV
+        </button>
       )}
     </div>
   );

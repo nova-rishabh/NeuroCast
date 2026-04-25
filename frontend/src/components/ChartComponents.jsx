@@ -1,150 +1,105 @@
-import React from 'react';
 import { Bar, Line, Doughnut } from 'react-chartjs-2';
 
-export function ConfusionMatrix({ matrix }) {
-  if (!matrix) return null;
-  const [[tn, fp], [fn, tp]] = matrix;
-  const max = Math.max(tn, fp, fn, tp);
-  
-  const getColor = (val) => {
-    const alpha = Math.max(0.1, val / max);
-    return `rgba(79, 70, 229, ${alpha})`;
-  };
+const darkOptions = {
+  responsive: true,
+  plugins: {
+    legend: { labels: { color: '#94A3B8', font: { size: 11 } } },
+    title: { color: '#94A3B8' },
+  },
+  scales: {
+    x: { ticks: { color: '#94A3B8' }, grid: { color: '#2D3748' } },
+    y: { ticks: { color: '#94A3B8' }, grid: { color: '#2D3748' }, max: 1 },
+  },
+};
 
+export function ConfusionMatrix({ matrix }) {
+  if (!matrix || matrix.length < 2) return null;
+  const [[tn, fp], [fn, tp]] = matrix;
+  const cells = [
+    { label: 'True Neg', value: tn, color: 'bg-green-500/20 text-green-300' },
+    { label: 'False Pos', value: fp, color: 'bg-red-500/20 text-red-300' },
+    { label: 'False Neg', value: fn, color: 'bg-red-500/20 text-red-300' },
+    { label: 'True Pos', value: tp, color: 'bg-green-500/20 text-green-300' },
+  ];
   return (
-    <div className="card p-4 mb-6">
-      <h4 className="text-sm font-semibold mb-4 text-brand-navy">Confusion Matrix</h4>
-      <div className="grid grid-cols-2 gap-2 text-center text-sm font-mono">
-        <div className="p-4 rounded-lg flex flex-col justify-center border border-brand-border" style={{ backgroundColor: getColor(tn) }}>
-          <span className="text-brand-gray text-xs">True Negative</span>
-          <span className="font-bold text-lg text-brand-navy">{tn}</span>
-        </div>
-        <div className="p-4 rounded-lg flex flex-col justify-center border border-brand-border" style={{ backgroundColor: getColor(fp) }}>
-          <span className="text-brand-gray text-xs">False Positive</span>
-          <span className="font-bold text-lg text-brand-navy">{fp}</span>
-        </div>
-        <div className="p-4 rounded-lg flex flex-col justify-center border border-brand-border" style={{ backgroundColor: getColor(fn) }}>
-          <span className="text-brand-gray text-xs">False Negative</span>
-          <span className="font-bold text-lg text-brand-navy">{fn}</span>
-        </div>
-        <div className="p-4 rounded-lg flex flex-col justify-center border border-brand-border" style={{ backgroundColor: getColor(tp) }}>
-          <span className="text-brand-gray text-xs">True Positive</span>
-          <span className="font-bold text-lg text-brand-navy">{tp}</span>
-        </div>
+    <div>
+      <p className="text-xs text-slate-500 mb-2 font-medium">Confusion Matrix</p>
+      <div className="grid grid-cols-2 gap-2">
+        {cells.map((c, i) => (
+          <div key={i} className={`rounded-lg p-3 text-center ${c.color} border border-current/20`}>
+            <p className="text-xs text-slate-500">{c.label}</p>
+            <p className="text-xl font-bold">{c.value?.toLocaleString()}</p>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
-export function BarChart({ data, title }) {
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { labels: { color: '#64748B' } },
-      title: { display: true, text: title, color: '#1A0B2E' }
-    },
-    scales: {
-      y: { ticks: { color: '#64748B' }, grid: { color: '#E2E8F0' } },
-      x: { ticks: { color: '#64748B' }, grid: { color: '#E2E8F0' } }
-    }
+export function LabelDistributionChart({ data, labels, colors }) {
+  const chartData = {
+    labels,
+    datasets: [{ data, backgroundColor: colors, borderColor: 'transparent' }],
   };
   return (
-    <div className="card p-4 mb-6 h-64">
-      <Bar options={options} data={data} />
+    <div>
+      <p className="text-xs text-slate-500 mb-2 font-medium">Label Distribution (Training)</p>
+      <Doughnut data={chartData}
+        options={{ responsive: true, plugins: { legend: { labels: { color: '#94A3B8' } } } }}/>
     </div>
   );
 }
 
-export function DonutChart({ data, title }) {
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { position: 'bottom', labels: { color: '#64748B' } },
-      title: { display: true, text: title, color: '#1A0B2E' }
-    },
-    cutout: '70%',
-  };
-  return (
-    <div className="card p-4 mb-6 h-64">
-      <Doughnut options={options} data={data} />
-    </div>
-  );
-}
-
-export function RocCurve({ rocCurve, auc }) {
-  if (!rocCurve) return null;
+export function RocCurveChart({ fpr, tpr, auc }) {
   const data = {
-    labels: rocCurve.fpr,
     datasets: [
       {
         label: `ROC Curve (AUC = ${auc})`,
-        data: rocCurve.tpr,
-        borderColor: '#4F46E5',
-        backgroundColor: 'rgba(79, 70, 229, 0.2)',
-        fill: true,
-        tension: 0.4,
+        data: fpr.map((x, i) => ({ x, y: tpr[i] })),
+        borderColor: '#22D3EE', backgroundColor: 'rgba(34,211,238,0.1)',
+        fill: true, tension: 0.3, pointRadius: 0,
       },
       {
-        label: 'Random Baseline',
-        data: rocCurve.fpr,
-        borderColor: '#94A3B8',
-        borderDash: [5, 5],
-        pointRadius: 0,
-        fill: false,
-      }
+        label: 'Random',
+        data: [{ x: 0, y: 0 }, { x: 1, y: 1 }],
+        borderColor: '#4B5563', borderDash: [5, 5],
+        pointRadius: 0, fill: false,
+      },
     ],
   };
-
-  const options = {
+  const opts = {
     responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { labels: { color: '#64748B' } },
-    },
     scales: {
-      x: { title: { display: true, text: 'False Positive Rate', color: '#64748B' }, ticks: { color: '#64748B' }, grid: { color: '#E2E8F0' } },
-      y: { title: { display: true, text: 'True Positive Rate', color: '#64748B' }, ticks: { color: '#64748B' }, grid: { color: '#E2E8F0' } }
-    }
+      x: { type: 'linear', min: 0, max: 1, title: { display: true, text: 'FPR', color: '#94A3B8' },
+        ticks: { color: '#94A3B8' }, grid: { color: '#2D3748' } },
+      y: { min: 0, max: 1, title: { display: true, text: 'TPR', color: '#94A3B8' },
+        ticks: { color: '#94A3B8' }, grid: { color: '#2D3748' } },
+    },
+    plugins: { legend: { labels: { color: '#94A3B8', font: { size: 11 } } } },
   };
-
   return (
-    <div className="card p-4 mb-6 h-64">
-      <Line options={options} data={data} />
+    <div>
+      <p className="text-xs text-slate-500 mb-2 font-medium">ROC Curve</p>
+      <Line data={data} options={opts}/>
     </div>
   );
 }
 
-export function ComparisonChart({ comparisonData }) {
-  if (!comparisonData) return null;
-  
+export function ComparisonChart({ comparison, metricLabel }) {
+  if (!comparison) return null;
   const data = {
-    labels: ['Logistic Regression', 'Naive Bayes', 'Linear SVM'],
-    datasets: [
-      {
-        label: 'Score',
-        data: [comparisonData.LR, comparisonData.NB, comparisonData.SVM],
-        backgroundColor: ['#4F46E5', '#06B6D4', '#22C55E'],
-      }
-    ]
+    labels: ['Logistic Regression', 'Naive Bayes', 'SVM'],
+    datasets: [{
+      label: metricLabel,
+      data: [comparison.LR, comparison.NB, comparison.SVM],
+      backgroundColor: ['rgba(99,102,241,0.7)', 'rgba(34,211,238,0.7)', 'rgba(245,158,11,0.7)'],
+      borderRadius: 6,
+    }],
   };
-
-  const options = {
-    responsive: true,
-    plugins: {
-      legend: { display: false },
-      title: { display: true, text: 'Model Comparison', color: '#1A0B2E' }
-    },
-    scales: {
-      y: { min: 0, max: 1, ticks: { color: '#64748B' }, grid: { color: '#E2E8F0' } },
-      x: { ticks: { color: '#64748B' }, grid: { color: '#E2E8F0' } }
-    }
-  };
-
   return (
-    <div className="card p-4 mb-6 h-64">
-      <Bar options={options} data={data} />
+    <div className="mt-4">
+      <p className="text-xs text-slate-500 mb-2 font-medium">Model Comparison ({metricLabel})</p>
+      <Bar data={data} options={{ ...darkOptions, scales: { ...darkOptions.scales, y: { ...darkOptions.scales.y, min: 0 } } }}/>
     </div>
   );
 }
